@@ -29,10 +29,9 @@
     <br>
     <p>Hit 'Space' to ascend!</p>
     <section>
-      <button type="button" class="nes-btn" @click="showGameModal('quit-modal-dialog')">
-        Quit Game
-      </button>
-      <br>
+<!--      <button type="button" class="nes-btn" @click="showGameModal('quit-modal-dialog')">-->
+<!--        Quit Game-->
+<!--      </button>-->
       <dialog class="nes-dialog is-dark is-rounded" id="quit-modal-dialog">
         <form method="dialog">
           <p>Giving up already?</p>
