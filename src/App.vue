@@ -20,7 +20,12 @@
     >
       Time Left: {{ timeLeft }}s
     </div>
-    <canvas id="gameCanvas" ref="gameCanvas" width="1200" height="650"></canvas>
+    <canvas
+        id="gameCanvas"
+        ref="gameCanvas"
+        :width="canvasWidth"
+        :height="canvasHeight">
+    </canvas>
     <br>
     <p>Hit 'Space' to ascend!</p>
     <section>
@@ -129,8 +134,37 @@ const player = reactive({
 
 const obstacles = ref([]);
 
+// Reactive properties for canvas dimensions
+const canvasWidth = ref(1200);
+const canvasHeight = ref(650);
+
+// Function to update canvas size based on window size
+const updateCanvasSize = () => {
+  console.log('crash')
+  const aspectRatio = 1200 / 650; // Original aspect ratio
+
+  // Calculate the maximum possible width and height while maintaining aspect ratio
+  let newWidth = window.innerWidth * 0.8; // 80% of window width
+  let newHeight = newWidth / aspectRatio;
+
+  if (newHeight > window.innerHeight * 0.8) {
+    newHeight = window.innerHeight * 0.8;
+    newWidth = newHeight * aspectRatio;
+  }
+
+  canvasWidth.value = Math.floor(newWidth);
+  canvasHeight.value = Math.floor(newHeight);
+
+  // Adjust the canvas style for responsiveness
+  if (gameCanvas.value) {
+    gameCanvas.value.style.width = `${newWidth}px`;
+    gameCanvas.value.style.height = `${newHeight}px`;
+  }
+};
+
 // Initialize Game
 onMounted(() => {
+  updateCanvasSize();
   initGame();
 });
 
@@ -149,8 +183,8 @@ function showGameModal (elementId) {
 function initGame() {
   canvas = gameCanvas.value;
   ctx = canvas.getContext('2d');
-  player.x = canvas.width / 2 - playerSize / 2;
-  player.y = canvas.height - playerSize;
+  player.x = canvasWidth.value / 2 - playerSize / 2;
+  player.y = canvasHeight.value - playerSize;
   createObstacles();
   window.addEventListener('keydown', handleKeyDown);
   gameLoop();
@@ -176,8 +210,8 @@ function createObstacles() {
   // Adjusting game difficulty based on current level
   const obstacleRows = 4 + currentLevel.value;
   const obstaclesPerRow = currentLevel.value;
-  const rowHeight = canvas.height / obstacleRows;
-  const obstacleSpacing = canvas.width / obstaclesPerRow;
+  const rowHeight = canvasHeight.value / obstacleRows;
+  const obstacleSpacing = canvasWidth.value / obstaclesPerRow;
 
   for (let i = 0; i < obstacleRows; i++) {
     let yPosition = i * rowHeight + rowHeight / 2 - obstacleHeight / 2;
@@ -199,7 +233,7 @@ function createObstacles() {
 function moveObstacles() {
   obstacles.value.forEach(obstacle => {
     obstacle.x += obstacle.speed;
-    if (obstacle.x > canvas.width) {
+    if (obstacle.x > canvasWidth.value) {
       obstacle.x = -obstacle.width;
     }
   });
@@ -220,8 +254,8 @@ function applyGravity() {
   player.y += player.velocityY;
 
   // Prevent the player from falling below the canvas
-  if (player.y + player.height > canvas.height) {
-    player.y = canvas.height - player.height;
+  if (player.y + player.height > canvasHeight.value) {
+    player.y = canvasHeight.value - player.height;
     player.velocityY = 0;
   }
 
@@ -275,8 +309,8 @@ function checkWin() {
 
 function resetLevel() {
   // Reset player position
-  player.x = canvas.width / 2 - playerSize / 2;
-  player.y = canvas.height - playerSize;
+  player.x = canvasWidth.value / 2 - playerSize / 2;
+  player.y = canvasHeight.value- playerSize;
   player.velocityY = 0;
 
   // Create new obstacles for the next level
@@ -290,16 +324,15 @@ function resetGame() {
   timeLeft.value = 20;
   currentLevel.value = 1;
   player.velocityY = 0;
-  player.x = canvas.width / 2 - playerSize / 2;
-  player.y = canvas.height - playerSize;
+  player.x = canvasWidth.value / 2 - playerSize / 2;
+  player.y = canvasHeight.value- playerSize;
   createObstacles();
   gameLoop();
 }
 
 function gameLoop() {
   if (gameOver.value) return;
-
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.clearRect(0, 0, canvasWidth.value, canvasHeight.value);
 
   moveObstacles();
   obstacles.value.forEach(drawObstacle);
