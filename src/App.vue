@@ -1,5 +1,17 @@
 <template>
   <div id="app">
+    <br>
+    <section class="message">
+      <div class="speech-bubble">
+        <div class="speech-icon">
+          <i class="nes-bcrikko"></i>
+        </div>
+        <div class="nes-balloon from-left">
+          <p>Hello my friend! Your objective is simple...</p>
+          <p>Get to the other side of Level 5 in under 20 seconds to win it all!</p>
+        </div>
+      </div>
+    </section>
     <div id="level" class="nes-text">Level: {{ currentLevel }}</div>
     <div
         id="timer"
@@ -8,15 +20,16 @@
     >
       Time Left: {{ timeLeft }}s
     </div>
-    <canvas id="gameCanvas" ref="gameCanvas" width="1200" height="700"></canvas>
-    <br/>
+    <canvas id="gameCanvas" ref="gameCanvas" width="1200" height="650"></canvas>
+    <br>
+    <p>Hit 'Space' to ascend!</p>
     <section>
-      <button type="button" class="nes-btn" onclick="document.getElementById('dialog-default').showModal();">
+      <button type="button" class="nes-btn" @click="showGameModal('quit-modal-dialog')">
         Quit Game
       </button>
-      <dialog class="nes-dialog is-dark is-rounded" id="dialog-default">
+      <br>
+      <dialog class="nes-dialog is-dark is-rounded" id="quit-modal-dialog">
         <form method="dialog">
-          <p class="title">Dialog</p>
           <p>Giving up already?</p>
             <button class="nes-btn">Just kidding!</button>
 
@@ -24,10 +37,60 @@
         </form>
       </dialog>
     </section>
+    <section>
+      <dialog class="nes-dialog is-dark is-rounded" id="time-up-dialog">
+        <form method="dialog">
+          <p class="is-error" style="text-align: center">Game Over!</p>
+          <p>You have unfortunately run out of time my friend!</p>
+          <menu class="dialog-menu">
+            <button class="nes-btn" @click="resetGame">Retry</button>
+            <button class="nes-btn is-error">Quit Game</button>
+          </menu>
+        </form>
+      </dialog>
+    </section>
+    <section>
+      <dialog class="nes-dialog is-dark is-rounded" id="collision-detected-dialog">
+        <form method="dialog">
+          <p class="is-error" style="text-align: center">Game Over!</p>
+          <p>Damn! You were caught before you could get to the other side!</p>
+          <menu class="dialog-menu">
+            <button class="nes-btn" @click="resetGame">Retry</button>
+            <button class="nes-btn is-error">Quit Game</button>
+          </menu>
+        </form>
+      </dialog>
+    </section>
+
+    <section>
+      <dialog class="nes-dialog is-dark is-rounded" id="win-dialog">
+        <form method="dialog">
+          <input type="text" style="opacity: 0; height: 0; width: 0; position: absolute;" autofocus />
+          <div style="text-align: center">
+            <section class="message">
+              <div class="speech-bubble">
+                <div class="speech-icon">
+                  <i class="nes-bcrikko"></i>
+                </div>
+                <div class="nes-balloon from-left">
+                  <p>Welcome to the other side my friend! You got here with {{ timeLeft }}s left to spare!</p>
+                  <p></p>
+                </div>
+              </div>
+            </section>
+          </div>
+          <menu class="dialog-menu">
+            <button class="nes-btn" @click="resetGame">I WANNA DO IT AGAIN!</button>
+            <button class="nes-btn is-error">I'm quite content with this victory</button>
+          </menu>
+        </form>
+      </dialog>
+    </section>
   </div>
 </template>
 <script setup>
 import { onMounted, onBeforeUnmount, ref, reactive } from 'vue';
+import music from '../src/assets/music.mp3';
 
 // References
 const gameCanvas = ref(null);
@@ -40,6 +103,9 @@ const timerInterval = ref(null);
 const currentLevel = ref(1);
 const maxLevel = 5;
 
+// Create an Audio object
+const audio = new Audio(music);
+
 // Canvas and context
 let canvas = null;
 let ctx = null;
@@ -49,7 +115,7 @@ const playerSize = 20;
 const obstacleWidth = 50;
 const obstacleHeight = 20;
 const gravity = 0.6;
-const jumpStrength = -12;
+const jumpStrength = -10;
 
 // Player and obstacles
 const player = reactive({
@@ -75,13 +141,16 @@ onBeforeUnmount(() => {
   }
 });
 
+function showGameModal (elementId) {
+  audio.pause();
+  document.getElementById(elementId).showModal();
+}
+
 function initGame() {
   canvas = gameCanvas.value;
-  console.log(gameCanvas)
   ctx = canvas.getContext('2d');
   player.x = canvas.width / 2 - playerSize / 2;
   player.y = canvas.height - playerSize;
-  console.log('Hello!');
   createObstacles();
   window.addEventListener('keydown', handleKeyDown);
   gameLoop();
@@ -89,6 +158,10 @@ function initGame() {
 
 function handleKeyDown(e) {
   if (!gameStarted.value && e.code === 'Space') {
+    audio.currentTime = 0;
+    audio.play().catch((error) => {
+      console.error('Error playing audio:', error);
+    });
     gameStarted.value = true;
     startTimer();
   }
@@ -107,8 +180,7 @@ function createObstacles() {
   const obstacleSpacing = canvas.width / obstaclesPerRow;
 
   for (let i = 0; i < obstacleRows; i++) {
-    let yPosition =
-        i * rowHeight + rowHeight / 2 - obstacleHeight / 2;
+    let yPosition = i * rowHeight + rowHeight / 2 - obstacleHeight / 2;
 
     for (let j = 0; j < obstaclesPerRow; j++) {
       let xPosition = j * obstacleSpacing + Math.random() * (obstacleSpacing - obstacleWidth);
@@ -181,8 +253,7 @@ function checkCollisions() {
       // Collision detected
       gameOver.value = true;
       clearInterval(timerInterval.value);
-      alert('Game Over! Collision detected.');
-      resetGame();
+      showGameModal('collision-detected-dialog')
       return true;
     }
   }
@@ -197,9 +268,7 @@ function checkWin() {
     } else {
       gameOver.value = true;
       clearInterval(timerInterval.value);
-      alert('Congratulations! You completed all levels!');
-      resetLevel();
-      resetGame();
+      showGameModal('win-dialog')
     }
   }
 }
@@ -254,21 +323,27 @@ function startTimer() {
     if (timeLeft.value <= 0) {
       gameOver.value = true;
       clearInterval(timerInterval.value);
-      alert('Game Over! Time ran out.');
-      resetGame();
+      showGameModal('time-up-dialog');
     }
   }, 1000);
 }
 </script>
+<style>
+/* Remove the "scoped" attribute for global styles or use a separate global CSS file */
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  background-color: #000 !important;; /* Black background */
+  color: #fff; /* Ensure text is visible on the black background */
+}
 
-
-<style scoped>
 #app {
   display: flex;
   flex-direction: column;
   align-items: center;
-  background-color: #000;
-  height: 100%;
+  min-height: 100%; /* Allow the app to expand to full height */
+  background-color: transparent; /* Remove local background to rely on global */
   margin: 0;
   color: #fff;
 }
@@ -284,5 +359,48 @@ function startTimer() {
   border: 2px solid #000;
 }
 
+.centered-dialog {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  margin: 0;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-width: 300px;
+}
+
+/* Center buttons horizontally */
+.dialog-menu {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+}
+
+/* Adjust button size and spacing for a polished look */
+.dialog-menu button {
+  padding: 10px 20px;
+}
+
+.nes-balloon {
+  color: #000;
+  margin-left: 10px;
+}
+
+.message i {
+  font-size: 100px;
+}
+
+.speech-bubble {
+  display: flex; align-items: center;
+}
+
+.speech-icon {
+  margin-top: 50px; margin-right: 20px
+}
 </style>
+
 
