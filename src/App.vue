@@ -1,25 +1,29 @@
 <template>
   <div id="app">
-    <br>
-    <section class="message">
-      <div class="speech-bubble">
-        <div class="speech-icon">
-          <i class="nes-bcrikko"></i>
+    <div class="nes-container is-dark with-title">
+      <section class="message">
+        <div class="speech-bubble">
+          <div class="speech-icon">
+            <i class="nes-bcrikko"></i>
+          </div>
+          <div class="nes-balloon from-left">
+            <p>Hello my friend! Your objective is simple...</p>
+            <p>Get to the other side of Level 5 in under 20 seconds to win it all!</p>
+          </div>
         </div>
-        <div class="nes-balloon from-left">
-          <p>Hello my friend! Your objective is simple...</p>
-          <p>Get to the other side of Level 5 in under 20 seconds to win it all!</p>
-        </div>
-      </div>
-    </section>
-    <div id="level" class="nes-text">Level: {{ currentLevel }}</div>
-    <div
-        id="timer"
-        class="nes-text"
-        :class="{ 'is-error': timeLeft <= 10, 'is-success': timeLeft > 10 }"
-    >
-      Time Left: {{ timeLeft }}s
+      </section>
     </div>
+    <div style="display: flex; justify-content: space-between; width: 100%; margin-top: ">
+      <div id="level" class="nes-text">Level: {{ currentLevel }}</div>
+      <div
+          id="timer"
+          class="nes-text"
+          :class="{ 'is-error': timeLeft <= 10, 'is-success': timeLeft > 10 }"
+      >
+        Time Left: {{ timeLeft }}s
+      </div>
+    </div>
+
     <canvas
         id="gameCanvas"
         ref="gameCanvas"
