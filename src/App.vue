@@ -333,22 +333,32 @@ function resetGame() {
   gameLoop();
 }
 
-function gameLoop() {
+let lastFrameTime = 0; // Tracks the last time a frame was rendered
+const fpsInterval = 1000 / 60; // Targeting 60 FPS (1000ms divided by 60 frames)
+
+function gameLoop(timestamp) {
   if (gameOver.value) return;
-  ctx.clearRect(0, 0, canvasWidth.value, canvasHeight.value);
 
-  moveObstacles();
-  obstacles.value.forEach(drawObstacle);
+  const elapsed = timestamp - lastFrameTime;
 
-  applyGravity();
+  if (elapsed > fpsInterval) {
+    lastFrameTime = timestamp - (elapsed % fpsInterval); // Adjust for any drift
 
-  if (checkCollisions()) {
-    return;
+    ctx.clearRect(0, 0, canvasWidth.value, canvasHeight.value);
+
+    moveObstacles();
+    obstacles.value.forEach(drawObstacle);
+
+    applyGravity();
+
+    if (checkCollisions()) {
+      return;
+    }
+
+    checkWin();
+
+    drawPlayer();
   }
-
-  checkWin();
-
-  drawPlayer();
 
   requestAnimationFrame(gameLoop);
 }
