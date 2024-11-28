@@ -211,7 +211,7 @@ function createObstacles() {
   obstacles.value = [];
 
   // Adjusting game difficulty based on current level
-  const obstacleRows = 4 + currentLevel.value;
+  const obstacleRows = 3 + currentLevel.value;
   const obstaclesPerRow = currentLevel.value;
   const rowHeight = canvasHeight.value / obstacleRows;
   const obstacleSpacing = canvasWidth.value / obstaclesPerRow;
