@@ -31,7 +31,7 @@
         :height="canvasHeight">
     </canvas>
     <br>
-    <p>Hit 'Space' to ascend!</p>
+    <p>Tap (or hold 😉) 'Space' to ascend!</p>
     <section>
 <!--      <button type="button" class="nes-btn" @click="showGameModal('quit-modal-dialog')">-->
 <!--        Quit Game-->
